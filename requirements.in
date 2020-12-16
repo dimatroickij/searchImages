@@ -1,0 +1,7 @@
+django
+django-extensions
+django-debug-toolbar
+django-redis
+gunicorn
+requests
+psycopg2-binary
