@@ -24,6 +24,21 @@ services:
       - POSTGRES_PASSWORD=searchImages
       - POSTGRES_DB=searchImages
 
+  minio:
+    image: minio/minio:RELEASE.2020-12-16T05-05-17Z
+    container_name: minio
+    volumes:
+    - data:/data
+    ports:
+      - 9000:9000
+    env_file:
+      - .env.dev
+    command: server /data/minio
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 #  rabbit:
 #    image: library/rabbitmq:3.8-management
 #    container_name: rabbit
@@ -67,3 +82,4 @@ services:
 
 volumes:
   postgres_data:
+  data:
