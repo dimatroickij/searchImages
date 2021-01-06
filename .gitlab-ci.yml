@@ -31,7 +31,7 @@ build:
     - docker pull $IMAGE:nginx || true
     - docker-compose -f docker-compose.ci.yml build
     - docker push $IMAGE:searchimages
-    - dicker push $IMAGE:histogram
+    - docker push $IMAGE:histogram
     - docker push $IMAGE:nginx
 
 deploy:
