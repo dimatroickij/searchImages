@@ -3,5 +3,7 @@ django-extensions
 django-debug-toolbar
 django-redis
 gunicorn
+sorl-thumbnail
 requests
 psycopg2-binary
+Pillow
