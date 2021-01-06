@@ -32,6 +32,8 @@
             {% if request.user.is_superuser %}
                 <a class="nav-link" href="/admin">Администрирование</a>
             {% endif %}
+            <a class="nav-link" href="{% url 'search:upload' %}">Загрузка изображений</a>
+            <a class="nav-link" href="{% url 'search:delete' %}">Удаление изображений</a>
         </ul>
     </div>
 </nav>

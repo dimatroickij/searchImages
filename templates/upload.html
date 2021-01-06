@@ -1,0 +1,32 @@
+{% extends 'application.html' %}
+{% block title %}Загрузка изображений в БД{% endblock %}
+{% block content %}
+    <div class="fullscreen__container" style="flex: 1; display: flex; justify-content: center; align-items: center">
+        <div class="container">
+            <div class="jumbotron">
+                <div class="jumbotron">
+                    <h1 class="display-4">Загрузка изображений</h1>
+                    <hr class="my-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            {{ form }}
+                        </div>
+                        {% for error in form.non_field_errors %}
+                            <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary">Загрузить в БД</button>
+                    </form>
+                    <hr class="my-4">
+                    {% if img_obj %}
+                        {% load thumbnail %}
+                        <h3>Succesfully uploaded : {{ img_obj.title }}</h3>
+                        {% thumbnail img_obj.image "100x100" crop="center" as im %}
+                            <img src="{{ STATIC_URL }}{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}">
+                        {% endthumbnail %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -7,15 +7,25 @@ services:
       cache_from:
         - "${WEB_IMAGE}"
     image: "${WEB_IMAGE}"
-    container_name: web
-    command: sh -c "python manage.py collectstatic --no-input --clear"
+    container_name: searchimages
     volumes:
-      - static_volume:/usr/src/app/static
+      - static_volume:/static
       - media_volume:/usr/src/app/mediafiles
     expose:
       - 8000
-    env_file: 
+    env_file:
       - .env
+
+  histogram:
+    build:
+      context: ./histogram
+      cache_from:
+        - "${HISTOGRAM_IMAGE}"
+    image: "${HISTOGRAM_IMAGE}"
+    container_name: histogram
+    expose:
+      - 8080
+    command: java -Djava.security.egd=file:/dev/./urandom -jar /histogram/target/histogram-0.0.1-SNAPSHOT.jar
 
   nginx:
     build:
@@ -23,49 +33,16 @@ services:
       cache_from:
         - "${NGINX_IMAGE}"
     image: "${NGINX_IMAGE}"
+    container_name: nginx
     volumes:
-      - static_volume:/usr/src/app/static
+      - static_volume:/static
       - media_volume:/usr/src/app/mediafiles
-      - /certs:/etc/nginx/certs
     ports:
       - 80:80
-      - 443:443
+      - 8080:8080
     depends_on:
       - web
-#
-#  rabbit:
-#    image: library/rabbitmq:3.8-alpine
-#    container_name: rabbit
-#    hostname: dimatroickij
-#    env_file:
-#      - .env
-#    expose:
-#    - 15672
-#    - 5672
-#
-#  celery:
-#    image: "${WEB_IMAGE}"
-#    container_name: celery
-#    env_file:
-#      - .env
-#    command: celery worker -A smarthome
-#    depends_on:
-#      - rabbit
-#      - web
-#    links:
-#      - rabbit
-#
-#  celery_beat:
-#    image: "${WEB_IMAGE}"
-#    container_name: celery_beat
-#    env_file:
-#      - .env
-#    command: celery -A smarthome beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-#    depends_on:
-#      - rabbit
-#      - web
-#    links:
-#      - rabbit
+      - histogram
 
 volumes:
   static_volume:
