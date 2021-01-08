@@ -18,7 +18,6 @@ services:
   histogram:
     build:
       context: ./histogram
-      dockerfile: Dockerfile
     container_name: histogram
     ports:
     - 8080:8080

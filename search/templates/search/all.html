@@ -1,0 +1,135 @@
+{% extends 'application.html' %}
+{% block title %}Все изображения{% endblock %}
+{% block content %}
+    <script>
+        $(document).ready(function () {
+            $('#Modal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget)
+                var recipient = button.data('whatever')
+                var pk = button.data('store-id')
+                var modal = $(this)
+                modal.find('#ModalLabel').text(recipient)
+                $('#rescanButton').attr('href', 'rescan/' + pk)
+                $('#deleteButton').attr('href', 'delete/' + pk)
+                var ctx = document.getElementById('ChartHistogram').getContext('2d');
+                $.ajax("/detail/" + pk, {
+                    statusCode: {
+                        200: function (data) {
+                            graphStates = new Chart(ctx, data.graph);
+                            var modalImg = $('#modalImg')
+                            modalImg.attr('src', data.img.url)
+                        }
+                    }
+                })
+            })
+        })
+    </script>
+    {% load thumbnail %}
+    <div class="container">
+        <div class="card text-center mt-4" style="background-color:#007bff;cursor:pointer;color:white">
+            <div class="card-body" href="#addImage" data-toggle="collapse" aria-controls="addImage"
+                 aria-expanded="false" style="display:flex;align-items:center;justify-content:space-evenly">
+                <i class="material-icons">add</i>Добавить изображение
+            </div>
+        </div>
+        <div class="card mt-4 collapse" id="addImage">
+            <div class="card-body">
+                <form method="post" action="{% url 'search:upload' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        {{ form }}
+                    </div>
+                    {% for error in form.non_field_errors %}
+                        <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary">Загрузить в БД</button>
+                </form>
+            </div>
+        </div>
+        <div class="row row-cols-1 row-cols-md-4 mt-4">
+            {% for img in images %}
+                <div class="col mb-4">
+                    <div class="card">
+                        {% thumbnail img.image "150x150" crop="center" as im %}
+                            <img class="card-img-top" src="{{ STATIC_URL }}{{ im.url }}" width="{{ im.width }}"
+                                 height="{{ im.height }}" alt="">
+                        {% endthumbnail %}
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ img.title }}
+                                <span class="material-icons" data-toggle="modal" data-target="#Modal"
+                                      title="Информация об изображении" style="cursor: pointer;"
+                                      data-whatever="{{ img.title }}" data-store-id="{{ img.pk }}">info</span>
+                            </h5>
+                            <p class="card-text"></p>
+                            <a href="{% url 'search:rescan' img.pk %}" class="card-link">Пересканировать</a>
+                            <a href="{% url 'search:delete' img.pk %}" data-me class="card-link">Удалить</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+                {% if images.number == 1 %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ images.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="page-item active" aria-current="page">
+                    <a class="page-link" href="?page={{ images.number }}">
+                        {{ images.number }} <span class="sr-only">(current)</span>
+                    </a>
+                </li>
+                {% if images.number == images.paginator.num_pages %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ images.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="Modal" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ModalLabel"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            <img id="modalImg" src="" alt="">
+                        </div>
+                        <div class="col">
+                            <canvas id="ChartHistogram"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-success" id="rescanButton">Пересканировать</a>
+                    <a class="btn btn-danger" id="deleteButton">Удалить</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -12,6 +12,9 @@
           rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}"/>
     <meta charset="UTF-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"
+            integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw=="
+            crossorigin="anonymous"></script>
 
     <script src="{% static 'js/applications.js' %}"></script>
     <meta name="viewport" content="initial-scale=1, maximum-scale=1"/>
@@ -31,9 +34,24 @@
         <ul class="navbar-nav mr-auto">
             {% if request.user.is_superuser %}
                 <a class="nav-link" href="/admin">Администрирование</a>
+                <a class="nav-link" href="{% url 'search:all' %}">Все изображения</a>
             {% endif %}
-            <a class="nav-link" href="{% url 'search:upload' %}">Загрузка изображений</a>
-            <a class="nav-link" href="{% url 'search:delete' %}">Удаление изображений</a>
+        </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                {% if request.user.is_authenticated %}
+                    <a class="nav-link" href="{% url 'authentication:editProfile' %}">{{ request.user.username }}</a>
+                {% else %}
+                    <a class="nav-link" href="{% url 'login' %}">Вход</a>
+                {% endif %}
+            </li>
+            <li class="nav-item">
+                {% if request.user.is_authenticated %}
+                    <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                {% else %}
+                    <a class="nav-link" href="{% url 'authentication:registration' %}">Регистрация</a>
+                {% endif %}
+            </li>
         </ul>
     </div>
 </nav>
