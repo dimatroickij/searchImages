@@ -7,3 +7,5 @@ sorl-thumbnail
 requests
 psycopg2-binary
 Pillow
+plotly
+six
