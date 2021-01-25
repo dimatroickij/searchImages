@@ -2,6 +2,7 @@ import json
 
 import PIL
 import requests
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
@@ -51,8 +52,11 @@ def upload(request):
             image = Image.objects.get(pk=img.pk)
             histogram = json.dumps(remap_keys(utils.convert2hist_1d(PIL.Image.open(image.image), color_elements,
                                                                     grid_1d).to_dict()))
-            # sendHist = requests.get('localhost:8080/addHistogram', json=histogram)
             img.histogram = histogram
+            sendHist = requests.post('localhost:8080/addHistogram', json=histogram)
+            if sendHist.status_code != 200:
+                messages.add_message(request, messages.ERROR,
+                                     'Ошибка при индексации в Lucene. Изображение не добавлено')
             img.save()
             return redirect('search:all')
     return HttpResponse(status=400)
@@ -84,8 +88,8 @@ def rescan(request, pk):
                                                             grid_1d).to_dict()))
     image.histogram = histogram
     image.save()
-    #sendHist = requests.get('http://histogram:8080/addHistogram', json=histogram)
-    #print(sendHist.status_code)
+    # sendHist = requests.get('http://histogram:8080/addHistogram', json=histogram)
+    # print(sendHist.status_code)
     print(json.loads(histogram))
     return redirect('search:all')
 
