@@ -1,5 +1,56 @@
 {% extends 'application.html' %}
-{% block title %}Главная страница{% endblock %}
+{% block title %}Результаты поиска{% endblock %}
 {% block content %}
+    <script>
+        $(document).ready(function () {
+            for (i = 0; i < document.getElementsByClassName('ChartHistogram').length; i++) {
+                var graph = document.getElementsByClassName('ChartHistogram')[i].getContext('2d');
+                var data = JSON.parse(document.getElementsByClassName('dataChart')[i].value)
+                var graphStates = new Chart(graph, data);
+            }
+        })
+    </script>
+    {% load thumbnail %}
+    <div class="container">
+        <div class=" mt-1">
+            <div class="card-body">
+                <div class="input-group mb-1">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="material-icons">image</i></span>
+                    </div>
+                    <input type="text" class="form-control" placeholder="Введите поисковый запрос" id="search"
+                           aria-label="Введите поисковый запрос" aria-describedby="searchButton" autocapitalize="words"
+                    value="{{ query }}">
+                    <div class="input-group-append">
+                        <a href="" class="btn btn-outline-secondary" type="button" id="searchButton" onclick="search()">
+                            Поиск
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% for img in images %}
+                <div class="card mt-1 mb-1">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-3 col-sm-2 col-md-3 col-lg-2 col-xl-2 text-center">
+                                {% thumbnail img.image "150x150" crop="center" as im %}
+                                    <img class="card-img-top" src="{{ STATIC_URL }}{{ im.url }}" width="{{ im.width }}"
+                                         height="{{ im.height }}" alt="">
+                                {% endthumbnail %}
+                            </div>
+                            <div class="col-9 col-sm-3 col-md-9 col-lg-7 col-xl-5"><b>Совпадение: 90%</b><br><small
+                                    class="text-muted">{{ img.title }}</small></div>
+                            <div class="d-none d-sm-block col-sm-7 d-md-none d-lg-block col-lg-3 col-xl-5 text-center">
+                                <canvas class="ChartHistogram" data-store-id="{{ img.pk }}"></canvas>
+                                <input type="hidden" class="dataChart" value="{{ img.graph }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
 
+        </div>
+    </div>
 {% endblock %}

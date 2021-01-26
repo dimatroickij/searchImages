@@ -40,8 +40,33 @@ def all(request):
 
 
 def search(request):
-    pass
-
+    try:
+        query = request.GET['query']
+    except:
+        return HttpResponse(status=404)
+    if query == '':
+        return HttpResponse(status=404)
+    searchRequest = requests.get('http://histogram:8080/search?request=%s' % query)
+    if searchRequest.status_code == 200:
+        images = Image.objects.all()[0:5]
+        for image in images:
+            hist = json.loads(image.histogram)
+            labels = list(map(lambda x: list(x.keys())[0], hist))
+            data = list(map(lambda x: list(x.values())[0], hist))
+            image.graph = json.dumps({'type': 'bar',
+                        'data': {
+                            'labels': labels,
+                            'datasets': [{
+                                'label': 'Значение гистограммы',
+                                'data': data,
+                                'backgroundColor': ['rgba(153, 102, 255, 0.2)'] * len(data),
+                                'borderColor': ['rgba(153, 102, 255, 1)'] * len(data),
+                                'borderWidth': 1
+                            }]},
+                        'options': {'scales': {'yAxes': [{'ticks': {'beginAtZero': True}}]}}})
+        return render(request, 'search/search.html', {'query': query, 'images': images})
+    else:
+        return HttpResponse(status=404)
 
 @login_required
 def upload(request):
@@ -53,7 +78,7 @@ def upload(request):
             histogram = json.dumps(remap_keys(utils.convert2hist_1d(PIL.Image.open(image.image), color_elements,
                                                                     grid_1d).to_dict()))
             img.histogram = histogram
-            sendHist = requests.post('localhost:8080/addHistogram', json=histogram)
+            sendHist = requests.post('http://histogram:8080/addHistogram/' + str(image.pk), json=histogram)
             if sendHist.status_code != 200:
                 messages.add_message(request, messages.ERROR,
                                      'Ошибка при индексации в Lucene. Изображение не добавлено')
@@ -67,12 +92,13 @@ def delete(request, pk):
     if Image.objects.filter(pk=pk).exists():
         img = Image.objects.get(pk=pk)
         from sorl.thumbnail import delete
-        delete(img.image)
-        img.delete()
-        data = {"e1": 0.4, "e2": 0.1, "e3": 0.3, "e4": 0.1, "e5": 0.1}
-        # sendHistogram = requests.post('localhost:8080/addHistog', json=data)
-        # print(sendHistogram.status_code)
-        # TODO: отправка запроса в spring-приложение для удаления данных об этом изображении
+        deleteHist = requests.get('http://histogram:8080/deleteHistogram/' + str(img.pk))
+        if deleteHist.status_code == 200:
+            delete(img.image)
+            img.delete()
+        else:
+            messages.add_message(request, messages.WARNING,
+                                 'Ошибка удаления в Lucene. Изображение не удалено')
         return redirect('search:all')
     return HttpResponse(status=204)
 
@@ -86,11 +112,13 @@ def rescan(request, pk):
     image = Image.objects.get(pk=pk)
     histogram = json.dumps(remap_keys(utils.convert2hist_1d(PIL.Image.open(image.image), color_elements,
                                                             grid_1d).to_dict()))
-    image.histogram = histogram
-    image.save()
-    # sendHist = requests.get('http://histogram:8080/addHistogram', json=histogram)
-    # print(sendHist.status_code)
-    print(json.loads(histogram))
+    rescanHist = requests.get('http://histogram:8080/rescanHistogram/' + str(image.pk), json=histogram)
+    if rescanHist.status_code == 200:
+        image.histogram = histogram
+        image.save()
+    else:
+        messages.add_message(request, messages.WARNING,
+                             'Ошибка обновления данных в Lucene. Попробуйте ещё раз.')
     return redirect('search:all')
 
 
