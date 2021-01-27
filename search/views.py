@@ -78,7 +78,7 @@ def upload(request):
             histogram = json.dumps(remap_keys(utils.convert2hist_1d(PIL.Image.open(image.image), color_elements,
                                                                     grid_1d).to_dict()))
             img.histogram = histogram
-            sendHist = requests.post('http://histogram:8080/addHistogram/' + str(image.pk), json=histogram)
+            sendHist = requests.post('http://histogram:8080/addHistogram/' + str(image.pk), json=json.loads(histogram))
             if sendHist.status_code != 200:
                 messages.add_message(request, messages.ERROR,
                                      'Ошибка при индексации в Lucene. Изображение не добавлено')
@@ -112,7 +112,7 @@ def rescan(request, pk):
     image = Image.objects.get(pk=pk)
     histogram = json.dumps(remap_keys(utils.convert2hist_1d(PIL.Image.open(image.image), color_elements,
                                                             grid_1d).to_dict()))
-    rescanHist = requests.get('http://histogram:8080/rescanHistogram/' + str(image.pk), json=histogram)
+    rescanHist = requests.post('http://histogram:8080/rescanHistogram/' + str(image.pk), json=json.loads(histogram))
     if rescanHist.status_code == 200:
         image.histogram = histogram
         image.save()

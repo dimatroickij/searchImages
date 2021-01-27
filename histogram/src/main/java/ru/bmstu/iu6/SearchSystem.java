@@ -21,7 +21,7 @@ public class SearchSystem {
         System.out.println("Введите выражение для поиска");
 //        Scanner in = new Scanner(System.in);
 //        String expr = in.next();
-        String expr = "(e1+e2+e3)|(e2+e3+e4)";
+        String expr = "((Ep_top, Ec_red)+(Ep_right, Ec_red))";
         E E1 = new E(expr);
         Searcher searcher = new Searcher("C:\\indexing");
         searcher.search(E1.getValue());

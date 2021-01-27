@@ -59,7 +59,7 @@ public class Evaluator1DTest {
 
         parser = new Parsing();
 
-        HashMap<Integer, HashMap<String, HashSet<String>>> high_level_elements = new HashMap<>();
+        HashMap<String, HashMap<String, HashSet<String>>> high_level_elements = new HashMap<>();
         HashMap<String, HashSet<String>> hl0 = new HashMap<>();
         HashMap<String, HashSet<String>> hl1 = new HashMap<>();
 
@@ -80,8 +80,8 @@ public class Evaluator1DTest {
 
         hl1.put("E1", v3);
 
-        high_level_elements.put(0, hl0);
-        high_level_elements.put(1, hl1);
+        high_level_elements.put("0", hl0);
+        high_level_elements.put("1", hl1);
 
         evaluator = new Evaluator(OperationBase.operations(), hist, high_level_elements);
     }

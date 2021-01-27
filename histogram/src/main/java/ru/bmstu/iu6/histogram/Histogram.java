@@ -129,7 +129,7 @@ public class Histogram {
         return call(element, null);
     }
 
-    public HElementSet call(Vector<String> element, HashMap<Integer, HashMap<String, HashSet<String>>> composition) {
+    public HElementSet call(Vector<String> element, HashMap<String, HashMap<String, HashSet<String>>> composition) {
         int element_dim = element.size();
         HashMap<Integer, HashSet<String>> Es = new HashMap<>();
         boolean has_compound = false;
@@ -138,8 +138,8 @@ public class Histogram {
             HashSet<String> el = new HashSet<>();
             el.add(element.get(i));
             Es.put(i, el);
-            if (composition != null && composition.containsKey(i) && composition.get(i).containsKey(element.get(i))) {
-                HashSet<String> el1 = composition.get(i).get(element.get(i));
+            if (composition != null && composition.containsKey(String.valueOf(i)) && composition.get(String.valueOf(i)).containsKey(element.get(i))) {
+                HashSet<String> el1 = composition.get(String.valueOf(i)).get(element.get(i));
                 Es.put(i, el1);
                 has_compound = true;
             }

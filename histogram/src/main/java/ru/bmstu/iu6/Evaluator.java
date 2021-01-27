@@ -15,7 +15,7 @@ public class Evaluator {
     private final Object H;
     private final HashMap<String, OperationBase> O;
     private final HashMap<String, HashSet<String>> extendedE;
-    private final HashMap<Integer, HashMap<String, HashSet<String>>> extendedE1D;
+    private final HashMap<String, HashMap<String, HashSet<String>>> extendedE1D;
 
     public Evaluator(HashMap<String, OperationBase> o) {
         O = o;
@@ -53,7 +53,7 @@ public class Evaluator {
     }
 
     public Evaluator(HashMap<String, OperationBase> o, Histogram1D h,
-                     HashMap<Integer, HashMap<String, HashSet<String>>> high_level_elements) {
+                     HashMap<String, HashMap<String, HashSet<String>>> high_level_elements) {
         O = o;
         H = h;
         extendedE = new HashMap<>();
