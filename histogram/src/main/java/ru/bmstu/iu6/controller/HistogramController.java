@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.bmstu.iu6.E;
 import ru.bmstu.iu6.integrate.Indexer;
 import ru.bmstu.iu6.integrate.Searcher;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 @RestController
 public class HistogramController {
 
-    String indexDirectoryPath = "C:\\indexing";
+    String indexDirectoryPath = "/indexing";
 
     @RequestMapping(value = "/addHistogram/{id}", method = RequestMethod.POST)
     public ResponseEntity<String> indexingHistogram(@PathVariable("id") UUID id, @RequestBody String payload) throws IOException {
@@ -58,14 +59,17 @@ public class HistogramController {
     }
 
     @RequestMapping(value = "/search")
-    public ResponseEntity<String> search(@RequestParam String request) throws IOException {
-        try {
+    public ResponseEntity<String> search(@RequestBody String request) throws Exception {
+//        try {
             Searcher searcher = new Searcher(indexDirectoryPath);
-            System.out.println(request);
+            if (request.equals(""))
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            E E1 = new E(request);
+            searcher.search(E1.getValue());
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (IndexNotFoundException e) {
-            System.out.println(e.getLocalizedMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+//        } catch (IndexNotFoundException e) {
+//            System.out.println(e.getLocalizedMessage());
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
     }
 }

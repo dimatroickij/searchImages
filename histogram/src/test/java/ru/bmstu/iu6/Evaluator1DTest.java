@@ -169,6 +169,7 @@ public class Evaluator1DTest {
 
         Vector<Vector<String>> expression = parser.parseString1D(query.getValue());
         HElementSet HE_result = evaluator.eval1D(expression);
+        System.out.println(hist.toMap());
 
         HashMap<Vector<String>, Float> comp = new HashMap<>();
         Vector<String> el1 = new Vector<>();

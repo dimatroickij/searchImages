@@ -42,7 +42,7 @@ public class Searcher {
 
     public void search(String expr) throws IOException {
         Parsing parsing = new Parsing();
-        Vector<String> expression = parsing.parseString(expr);
+        Vector<Vector<String>> expression = parsing.parseString1D(expr);
 
 //        BooleanQuery booleanQuery = new BooleanQuery();
 //        for (String s : expression) {
@@ -71,36 +71,29 @@ public class Searcher {
 //            System.out.println(hit);
 //        }
         Gson gson = new Gson();
-        List<Histogram> histograms = new ArrayList<>();
+        HashMap<String, Histogram1D> histograms = new HashMap<>();
         HashMap<String, Float> evalHistograms = new HashMap<>();
         FileReader fileReader = new FileReader(new File(Objects.requireNonNull(getClass().getClassLoader().getResource("high_level_elements.json")).getPath()));
-//        HashMap<String, HashSet<String>> high_level_elements1 = gson.fromJson(fileReader,
-//                new TypeToken<HashMap<String, HashSet<String>>>() {
-//                }.getType());
         HashMap<String, HashMap<String, HashSet<String>>> high_level_elements = gson.fromJson(fileReader,
                 new TypeToken<HashMap<String, HashMap<String, HashSet<String>>>>() {
                 }.getType());
-        Evaluator evaluator = new Evaluator(OperationBase.operations(), new Histogram1D(), high_level_elements);
-        for (int i = 0; i < indexReader.numDocs(); i++) {
 
+        Evaluator evaluator = new Evaluator(OperationBase.operations(), new Histogram1D(), high_level_elements);
+
+        for (int i = 0; i < indexReader.numDocs(); i++) {
             Document d = indexReader.document(i);
             Histogram1D histogram = new Histogram1D();
             List<IndexableField> fields = d.getFields();
             for (IndexableField field : fields) {
                 if (!field.name().equals("ID")) {
-                    Vector<String> el = new Vector<>(Arrays.asList(field.name().replace("[", "").replace("]", "").split(",")));
+                    Vector<String> el = gson.fromJson(field.name(), new TypeToken<Vector<String>>() {
+                    }.getType());
                     HElement hElement = new HElement(el, Float.parseFloat(field.stringValue()));
                     histogram.add(hElement);
                 }
             }
-            histograms.add(histogram);
-            Vector<String> vector = new Vector<>(expression);
-            Vector<Vector<String>> vector1D = new Vector<>();
-            for (String v: vector){
-                Vector<String> vv = new Vector<>(Arrays.asList(v.replace("[", "").replace("]", "").split(",")));
-                vector1D.add(vv);
-            }
-            HElementSet HE_result = evaluator.eval1D(vector1D, histogram);
+            histograms.put(d.getFields("ID")[0].stringValue(), histogram);
+            HElementSet HE_result = evaluator.eval1D(expression, histogram);
             evalHistograms.put(d.getFields("ID")[0].stringValue(), HE_result.sum());
         }
         List<Float> listEvalHistograms = new ArrayList<>(evalHistograms.values());
@@ -112,25 +105,10 @@ public class Searcher {
 
         System.out.println("Результаты поиска:");
         int j = 1;
-        for (int i = result.size() - 1; i >= result.size() - 5; i--) {
+        for (int i = evalHistograms.size() - 1; i >= 0; i--) {
             System.out.printf("%d) %.2f, ID: %s, Гистограмма: ", j, result.get(i).getValue(), result.get(i).getKey());
             j++;
-            System.out.println(histograms.get(Integer.parseInt(result.get(i).getKey())).toMap());
+            System.out.println(histograms.get(result.get(i).getKey()).toMap());
         }
-    }
-
-    public List<Document> getIdHistogram(String id) throws IOException {
-        Term term = new Term("ID", id);
-        Query query = new TermQuery(term);
-
-
-        IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs topDocs = searcher.search(query, 1);
-        List<Document> documents = new ArrayList<>();
-        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-            documents.add(searcher.doc(scoreDoc.doc));
-        }
-
-        return documents;
     }
 }

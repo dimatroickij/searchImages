@@ -46,7 +46,7 @@ def search(request):
         return HttpResponse(status=404)
     if query == '':
         return HttpResponse(status=404)
-    searchRequest = requests.get('http://histogram:8080/search?request=%s' % query)
+    searchRequest = requests.get('http://histogram:8080/search', data=query)
     if searchRequest.status_code == 200:
         images = Image.objects.all()[0:5]
         for image in images:
