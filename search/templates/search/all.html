@@ -82,11 +82,28 @@
                         </a>
                     </li>
                 {% endif %}
+                {% if images.previous_page_number >= 1 %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ images.previous_page_number }}"
+                           aria-label="{{ images.previous_page_number }}">
+                            <span aria-hidden="true">{{ images.previous_page_number }}</span>
+                        </a>
+                    </li>
+                {% endif %}
                 <li class="page-item active" aria-current="page">
                     <a class="page-link" href="?page={{ images.number }}">
                         {{ images.number }} <span class="sr-only">(current)</span>
                     </a>
                 </li>
+                {% if images.next_page_number <= images.paginator.num_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ images.next_page_number }}"
+                           aria-label="{{ images.next_page_number }}">
+                            <span aria-hidden="true">{{ images.next_page_number }}</span>
+                        </a>
+                    </li>
+                {% endif %}
                 {% if images.number == images.paginator.num_pages %}
                     <li class="page-item disabled">
                         <a class="page-link" href="#" aria-label="Next">

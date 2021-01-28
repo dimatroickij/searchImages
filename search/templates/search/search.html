@@ -12,26 +12,80 @@
     </script>
     {% load thumbnail %}
     <div class="container">
-        <div class=" mt-1">
+        <div class="">
             <div class="card-body">
-                <div class="input-group mb-1">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="material-icons">image</i></span>
+                <form action="{% url 'search:search' %}">
+                    <div class="input-group mb-1">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="material-icons">image</i></span>
+                        </div>
+                        <input type="text" name="query" class="form-control" placeholder="Введите поисковый запрос"
+                               id="search"
+                               aria-label="Введите поисковый запрос" aria-describedby="searchButton"
+                               autocapitalize="words"
+                               value="{{ query }}">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="submit" id="searchButton">Поиск</button>
+                        </div>
                     </div>
-                    <input type="text" class="form-control" placeholder="Введите поисковый запрос" id="search"
-                           aria-label="Введите поисковый запрос" aria-describedby="searchButton" autocapitalize="words"
-                    value="{{ query }}">
-                    <div class="input-group-append">
-                        <a href="" class="btn btn-outline-secondary" type="button" id="searchButton" onclick="search()">
-                            Поиск
-                        </a>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+                {% if images.number == 1 %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ images.previous_page_number }}&query={{ query | urlencode }}"
+                           aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                {% if images.previous_page_number >= 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ images.previous_page_number }}&query={{ query | urlencode }}"
+                           aria-label="{{ images.previous_page_number }}">
+                            <span aria-hidden="true">{{ images.previous_page_number }}</span>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="page-item active" aria-current="page">
+                    <a class="page-link" href="?page={{ images.number }}&query={{ query | urlencode }}">
+                        {{ images.number }} <span class="sr-only">(current)</span>
+                    </a>
+                </li>
+                {% if images.next_page_number <= images.paginator.num_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ images.next_page_number }}&query={{ query | urlencode }}"
+                           aria-label="{{ images.next_page_number }}">
+                            <span aria-hidden="true">{{ images.next_page_number }}</span>
+                        </a>
+                    </li>
+                {% endif %}
+                {% if images.number == images.paginator.num_pages %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ images.next_page_number }}&query={{ query | urlencode }}"
+                           aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
         <div class="card-body">
             {% for img in images %}
-                <div class="card mt-1 mb-1">
+                <div class="card mb-1">
                     <div class="card-body">
                         <div class="row">
                             <div class="col-3 col-sm-2 col-md-3 col-lg-2 col-xl-2 text-center">
@@ -40,7 +94,8 @@
                                          height="{{ im.height }}" alt="">
                                 {% endthumbnail %}
                             </div>
-                            <div class="col-9 col-sm-3 col-md-9 col-lg-7 col-xl-5"><b>Совпадение: 90%</b><br><small
+                            <div class="col-9 col-sm-3 col-md-9 col-lg-7 col-xl-5">
+                                <b>Совпадение: {{ img.result }}%</b><br><small
                                     class="text-muted">{{ img.title }}</small></div>
                             <div class="d-none d-sm-block col-sm-7 d-md-none d-lg-block col-lg-3 col-xl-5 text-center">
                                 <canvas class="ChartHistogram" data-store-id="{{ img.pk }}"></canvas>
@@ -50,7 +105,6 @@
                     </div>
                 </div>
             {% endfor %}
-
         </div>
     </div>
 {% endblock %}

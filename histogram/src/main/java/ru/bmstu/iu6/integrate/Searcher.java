@@ -2,28 +2,22 @@ package ru.bmstu.iu6.integrate;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.springframework.core.io.ClassPathResource;
 import ru.bmstu.iu6.Evaluator;
 import ru.bmstu.iu6.Parsing;
 import ru.bmstu.iu6.element.HElement;
 import ru.bmstu.iu6.element.HElementSet;
-import ru.bmstu.iu6.histogram.Histogram;
 import ru.bmstu.iu6.histogram.Histogram1D;
 import ru.bmstu.iu6.operation.OperationBase;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +34,7 @@ public class Searcher {
         indexSearcher = new IndexSearcher(indexReader);
     }
 
-    public void search(String expr) throws IOException {
+    public HashMap<String, Float> search(String expr) throws IOException {
         Parsing parsing = new Parsing();
         Vector<Vector<String>> expression = parsing.parseString1D(expr);
 
@@ -73,8 +67,11 @@ public class Searcher {
         Gson gson = new Gson();
         HashMap<String, Histogram1D> histograms = new HashMap<>();
         HashMap<String, Float> evalHistograms = new HashMap<>();
-        FileReader fileReader = new FileReader(new File(Objects.requireNonNull(getClass().getClassLoader().getResource("high_level_elements.json")).getPath()));
-        HashMap<String, HashMap<String, HashSet<String>>> high_level_elements = gson.fromJson(fileReader,
+
+        ClassPathResource resource = new ClassPathResource("high_level_elements.json");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+        String content = reader.lines().collect(Collectors.joining("\n"));
+        HashMap<String, HashMap<String, HashSet<String>>> high_level_elements = gson.fromJson(content,
                 new TypeToken<HashMap<String, HashMap<String, HashSet<String>>>>() {
                 }.getType());
 
@@ -96,19 +93,20 @@ public class Searcher {
             HElementSet HE_result = evaluator.eval1D(expression, histogram);
             evalHistograms.put(d.getFields("ID")[0].stringValue(), HE_result.sum());
         }
-        List<Float> listEvalHistograms = new ArrayList<>(evalHistograms.values());
-        listEvalHistograms.sort(Collections.reverseOrder());
+        return evalHistograms;
+//        List<Float> listEvalHistograms = new ArrayList<>(evalHistograms.values());
+//        listEvalHistograms.sort(Collections.reverseOrder());
+//
+//        List<Map.Entry<String, Float>> result = evalHistograms.entrySet().stream()
+//                .sorted((entry1, entry2) -> entry1.getValue().compareTo(entry2.getValue()))
+//                .collect(Collectors.toList());
 
-        List<Map.Entry<String, Float>> result = evalHistograms.entrySet().stream()
-                .sorted((entry1, entry2) -> entry1.getValue().compareTo(entry2.getValue()))
-                .collect(Collectors.toList());
-
-        System.out.println("Результаты поиска:");
-        int j = 1;
-        for (int i = evalHistograms.size() - 1; i >= 0; i--) {
-            System.out.printf("%d) %.2f, ID: %s, Гистограмма: ", j, result.get(i).getValue(), result.get(i).getKey());
-            j++;
-            System.out.println(histograms.get(result.get(i).getKey()).toMap());
-        }
+//        System.out.println("Результаты поиска:");
+//        int j = 1;
+//        for (int i = evalHistograms.size() - 1; i >= 0; i--) {
+//            System.out.printf("%d) %.2f, ID: %s, Гистограмма: ", j, result.get(i).getValue(), result.get(i).getKey());
+//            j++;
+//            System.out.println(histograms.get(result.get(i).getKey()).toMap());
+//        }
     }
 }

@@ -8,7 +8,6 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 
-# Create your views here.
 from sorl.thumbnail import get_thumbnail
 
 from search import utils
@@ -32,58 +31,82 @@ grid_1d = utils.generate_positional_grid_1d(5, 5)
 @login_required
 def all(request):
     form = ImageForm()
-    images = Image.objects.all()
+    images = Image.objects.all().order_by('title')
     paginator = Paginator(images, 8)
     pageNumber = request.GET.get('page')
     currentPage = paginator.get_page(pageNumber)
     return render(request, 'search/all.html', {'images': currentPage, 'form': form})
 
-
+@login_required
 def search(request):
+    def getGraph(pk):
+        hist = json.loads(Image.objects.get(pk=pk).histogram)
+        labels = list(map(lambda x: list(x.keys())[0], hist))
+        data = list(map(lambda x: list(x.values())[0], hist))
+        return json.dumps({'type': 'bar',
+                           'data': {
+                               'labels': labels,
+                               'datasets': [{
+                                   'label': 'Значение гистограммы',
+                                   'data': data,
+                                   'backgroundColor': ['rgba(153, 102, 255, 0.2)'] * len(data),
+                                   'borderColor': ['rgba(153, 102, 255, 1)'] * len(data),
+                                   'borderWidth': 1
+                               }]},
+                           'options': {'scales': {'yAxes': [{'ticks': {'beginAtZero': True}}]}}})
+
     try:
         query = request.GET['query']
     except:
-        return HttpResponse(status=404)
+        return HttpResponse(status=400)
     if query == '':
-        return HttpResponse(status=404)
+        messages.add_message(request, messages.WARNING, "Введите поисковый запрос!")
+        paginator = Paginator([], 3)
+        pageNumber = request.GET.get('page')
+        currentPage = paginator.get_page(pageNumber)
+        return render(request, 'search/search.html', {'query': query, 'images': currentPage})
     searchRequest = requests.get('http://histogram:8080/search', data=query)
     if searchRequest.status_code == 200:
-        images = Image.objects.all()[0:5]
-        for image in images:
-            hist = json.loads(image.histogram)
-            labels = list(map(lambda x: list(x.keys())[0], hist))
-            data = list(map(lambda x: list(x.values())[0], hist))
-            image.graph = json.dumps({'type': 'bar',
-                        'data': {
-                            'labels': labels,
-                            'datasets': [{
-                                'label': 'Значение гистограммы',
-                                'data': data,
-                                'backgroundColor': ['rgba(153, 102, 255, 0.2)'] * len(data),
-                                'borderColor': ['rgba(153, 102, 255, 1)'] * len(data),
-                                'borderWidth': 1
-                            }]},
-                        'options': {'scales': {'yAxes': [{'ticks': {'beginAtZero': True}}]}}})
-        return render(request, 'search/search.html', {'query': query, 'images': images})
+        sortedTuples = sorted(searchRequest.json().items(), key=lambda item: item[1], reverse=True)
+        response = {k: v for k, v in sortedTuples}
+        #
+        # paginator = Paginator(images, 8)
+        # pageNumber = request.GET.get('page')
+        # currentPage = paginator.get_page(pageNumber)
+        # return render(request, 'search/all.html', {'images': currentPage, 'form': form})
+
+
+        images = list(map(lambda x: {'pk': x[0], 'result': round(x[1], 2), 'image': Image.objects.get(pk=x[0]).image,
+                                'title': Image.objects.get(pk=x[0]).title, 'graph': getGraph(x[0])}, response.items()))
+        paginator = Paginator(images, 3)
+        pageNumber = request.GET.get('page')
+        currentPage = paginator.get_page(pageNumber)
+        return render(request, 'search/search.html', {'query': query, 'images': currentPage})
     else:
         return HttpResponse(status=404)
 
+
 @login_required
 def upload(request):
-    if request.method == 'POST':
-        form = ImageForm(request.POST, request.FILES)
-        if form.is_valid():
-            img = form.save()
-            image = Image.objects.get(pk=img.pk)
-            histogram = json.dumps(remap_keys(utils.convert2hist_1d(PIL.Image.open(image.image), color_elements,
-                                                                    grid_1d).to_dict()))
-            img.histogram = histogram
-            sendHist = requests.post('http://histogram:8080/addHistogram/' + str(image.pk), json=json.loads(histogram))
-            if sendHist.status_code != 200:
-                messages.add_message(request, messages.ERROR,
-                                     'Ошибка при индексации в Lucene. Изображение не добавлено')
-            img.save()
-            return redirect('search:all')
+    try:
+        if request.method == 'POST':
+            form = ImageForm(request.POST, request.FILES)
+            if form.is_valid():
+                img = form.save()
+                image = Image.objects.get(pk=img.pk)
+                histogram = json.dumps(remap_keys(utils.convert2hist_1d(PIL.Image.open(image.image), color_elements,
+                                                                        grid_1d).to_dict()))
+                img.histogram = histogram
+                sendHist = requests.post('http://histogram:8080/addHistogram/' + str(image.pk), json=json.loads(histogram))
+                if sendHist.status_code != 200:
+                    messages.add_message(request, messages.WARNING,
+                                         'Ошибка при индексации в Lucene. Изображение не добавлено')
+                img.save()
+                return redirect('search:all')
+    except:
+        messages.add_message(request, messages.WARNING,
+                             'Ошибка при добавлении изображения')
+        return redirect('search:all')
     return HttpResponse(status=400)
 
 
@@ -130,7 +153,6 @@ def detail(request, pk):
         hist = json.loads(img.histogram)
         labels = list(map(lambda x: list(x.keys())[0], hist))
         data = list(map(lambda x: list(x.values())[0], hist))
-        print(labels)
         response = {'type': 'bar',
                     'data': {
                         'labels': labels,

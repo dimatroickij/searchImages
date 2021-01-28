@@ -24,6 +24,8 @@ services:
     depends_on:
       - db
     command: java -Djava.security.egd=file:/dev/./urandom -jar /histogram/target/histogram-0.0.1-SNAPSHOT.jar
+    volumes:
+      - c://indexing:/indexing
 
   db:
     image: postgres:12.0-alpine

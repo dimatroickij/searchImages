@@ -9,14 +9,18 @@
                     <p class="lead">Проектно-технологическая практика</p>
                     <hr class="my-4">
                     {% if user.is_authenticated %}
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" placeholder="Введите образы для поиска"
-                                   aria-label="Введите образы для поиска" aria-describedby="button-addon2">
-                            <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="button" id="button-addon2">Поиск
-                                </button>
+                        <form action="{% url 'search:search' %}">
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" placeholder="Введите текст для поиска"
+                                       name="query" aria-label="Введите текст для поиска"
+                                       aria-describedby="button-addon2"
+                                       id="query">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Поиск
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </form>
                     {% else %}
                         <p class="lead">Для проверки работы приложения необходимо войти в систему.</p>
                     {% endif %}

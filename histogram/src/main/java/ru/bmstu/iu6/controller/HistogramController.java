@@ -10,6 +10,7 @@ import ru.bmstu.iu6.integrate.Indexer;
 import ru.bmstu.iu6.integrate.Searcher;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.UUID;
 
 @RestController
@@ -59,17 +60,18 @@ public class HistogramController {
     }
 
     @RequestMapping(value = "/search")
-    public ResponseEntity<String> search(@RequestBody String request) throws Exception {
-//        try {
+    public Object search(@RequestBody String request) throws Exception {
+        try {
             Searcher searcher = new Searcher(indexDirectoryPath);
             if (request.equals(""))
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             E E1 = new E(request);
-            searcher.search(E1.getValue());
-            return new ResponseEntity<>(HttpStatus.OK);
-//        } catch (IndexNotFoundException e) {
-//            System.out.println(e.getLocalizedMessage());
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
+            System.out.println("Search: " + request);
+            return searcher.search(E1.getValue());
+//        return new ResponseEntity<>(HttpStatus.OK);
+        } catch (IndexNotFoundException e) {
+            System.out.println(e.getLocalizedMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
