@@ -5,7 +5,7 @@ services:
     build: ./
     image: searchimages
     container_name: searchimages
-    command: sh -c "python manage.py makemigrations; python manage.py migrate; python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python3 manage.py makemigrations; python3 manage.py migrate; python3 manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./:/usr/src/app/
     ports:
@@ -25,7 +25,7 @@ services:
       - db
     command: java -Djava.security.egd=file:/dev/./urandom -jar /histogram/target/histogram-0.0.1-SNAPSHOT.jar
     volumes:
-      - c://indexing:/indexing
+      - /indexing:/indexing
 
   db:
     image: postgres:12.0-alpine
@@ -35,6 +35,8 @@ services:
       - POSTGRES_USER=searchimages
       - POSTGRES_PASSWORD=searchimages
       - POSTGRES_DB=searchimages
+    ports:
+      - 5432:5432
 
 volumes:
   postgres_data:

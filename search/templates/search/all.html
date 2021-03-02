@@ -62,7 +62,6 @@
                                       data-whatever="{{ img.title }}" data-store-id="{{ img.pk }}">info</span>
                             </h5>
                             <p class="card-text"></p>
-                            <a href="{% url 'search:rescan' img.pk %}" class="card-link">Пересканировать</a>
                             <a href="{% url 'search:delete' img.pk %}" data-me class="card-link">Удалить</a>
                         </div>
                     </div>

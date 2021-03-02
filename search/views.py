@@ -2,19 +2,21 @@ import json
 
 import PIL
 import requests
+import numpy as np
+import tensorflow as tf
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
+from object_detection.utils import visualization_utils as viz_utils
 
 from sorl.thumbnail import get_thumbnail
 
 from search import utils
 from search.forms import ImageForm
 from search.models import Image
-from searchImages.settings import BASE_DIR
-
+from searchImages.settings import BASE_DIR, detect_fn, category_index
 
 def home(request):
     return render(request, 'search/home.html')
@@ -36,6 +38,7 @@ def all(request):
     pageNumber = request.GET.get('page')
     currentPage = paginator.get_page(pageNumber)
     return render(request, 'search/all.html', {'images': currentPage, 'form': form})
+
 
 @login_required
 def search(request):
@@ -75,9 +78,9 @@ def search(request):
         # currentPage = paginator.get_page(pageNumber)
         # return render(request, 'search/all.html', {'images': currentPage, 'form': form})
 
-
         images = list(map(lambda x: {'pk': x[0], 'result': round(x[1], 2), 'image': Image.objects.get(pk=x[0]).image,
-                                'title': Image.objects.get(pk=x[0]).title, 'graph': getGraph(x[0])}, response.items()))
+                                     'title': Image.objects.get(pk=x[0]).title, 'graph': getGraph(x[0])},
+                          response.items()))
         paginator = Paginator(images, 3)
         pageNumber = request.GET.get('page')
         currentPage = paginator.get_page(pageNumber)
@@ -96,8 +99,12 @@ def upload(request):
                 image = Image.objects.get(pk=img.pk)
                 histogram = json.dumps(remap_keys(utils.convert2hist_1d(PIL.Image.open(image.image), color_elements,
                                                                         grid_1d).to_dict()))
+                width, height = PIL.Image.open(image.image).size
+                img.width = width
+                img.height = height
                 img.histogram = histogram
-                sendHist = requests.post('http://histogram:8080/addHistogram/' + str(image.pk), json=json.loads(histogram))
+                sendHist = requests.post('http://histogram:8080/addHistogram/' + str(image.pk),
+                                         json=json.loads(histogram))
                 if sendHist.status_code != 200:
                     messages.add_message(request, messages.WARNING,
                                          'Ошибка при индексации в Lucene. Изображение не добавлено')
@@ -143,6 +150,46 @@ def rescan(request, pk):
         messages.add_message(request, messages.WARNING,
                              'Ошибка обновления данных в Lucene. Попробуйте ещё раз.')
     return redirect('search:all')
+
+
+def segmentObjectDetections(path):
+    image = Image.open(path)
+    image_np = np.array(image)
+
+    width, height = image.size
+
+    input_tensor = tf.convert_to_tensor(image_np)
+    input_tensor = input_tensor[tf.newaxis, ...]
+
+    detections = detect_fn(input_tensor)
+
+    num_detections = int(detections.pop('num_detections'))
+    detections = {key: value[0, :num_detections].numpy()
+                  for key, value in detections.items()}
+    detections['num_detections'] = num_detections
+
+    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+
+    image_np_with_detections = image_np.copy()
+
+    viz_utils.visualize_boxes_and_labels_on_image_array(
+        image_np_with_detections,
+        detections['detection_boxes'],
+        detections['detection_classes'],
+        detections['detection_scores'],
+        category_index,
+        use_normalized_coordinates=True,
+        max_boxes_to_draw=200,
+        min_score_thresh=.30,
+        agnostic_mode=False)
+
+    dataImage = {'segments': [], 'width': width, 'height': height}
+    for i in range(0, detections['num_detections']):
+        dataImage['segments'].append({'scores': detections['detection_scores'][i],
+                                      'boxes': list(detections['detection_boxes'])[i],
+                                      'classes': list(map(lambda x: str(x), detections['detection_classes']))[i],
+                                      })
+    return dataImage
 
 
 @login_required

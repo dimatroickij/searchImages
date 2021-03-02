@@ -34,6 +34,7 @@
         <ul class="navbar-nav mr-auto">
             {% if request.user.is_superuser %}
                 <a class="nav-link" href="/admin">Администрирование</a>
+                <a class="nav-link" href="{% url 'search:all' %}">Все изображения</a>
             {% elif request.user.is_staff %}
                 <a class="nav-link" href="{% url 'search:all' %}">Все изображения</a>
             {% endif %}

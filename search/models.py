@@ -11,6 +11,9 @@ class Image(models.Model):
     slug = models.SlugField(max_length=200, blank=True)
     image = ImageField('Изображение', null=True, upload_to='')
     description = models.CharField('Описание', max_length=255, blank=True, null=True)
+    height = models.IntegerField('Высота', blank=True, null=True)
+    width = models.IntegerField('Ширина', blank=True, null=True)
+    details = models.JSONField('Данные о сегментации изображения', null=True)
     histogram = models.JSONField('Гистограмма в JSON формате', null=True)
     created = models.DateField(auto_now_add=True, db_index=True, null=True)
 
