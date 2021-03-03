@@ -25,8 +25,6 @@ before_script:
 
 build:
   stage: build
-  tags:
-    - dimatroickij
   script:
     - docker pull $IMAGE:searchimages || true
     - docker pull $IMAGE:histogram || true
@@ -38,8 +36,6 @@ build:
 
 deploy:
   stage: deploy
-  tags:
-    - dimatroickij
   script:
     - mkdir -p ~/.ssh
     - echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
