@@ -10,7 +10,5 @@ urlpatterns = [
     path('search', views.search, name='search'),
     path('upload', views.upload, name='upload'),
     path('delete/<uuid:pk>', views.delete, name='delete'),
-    path('feedback', views.feedback, name='feedback'),
-    path('rescan/<uuid:pk>', views.rescan, name='rescan'),
     path('detail/<uuid:pk>', views.detail, name='detail'),
 ]

@@ -11,8 +11,6 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 import os
-import tensorflow as tf
-from object_detection.utils import label_map_util
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -149,6 +147,3 @@ HOME_DIR = os.getcwd()
 MODEL_DIR = os.path.join('/ssd_mobilenet_v2_coco_2018_03_29')
 LABELS_DIR = os.path.join('/', 'mscoco_label_map.pbtxt')
 SAVED_MODEL_DIR = os.path.join(MODEL_DIR, "saved_model")
-model = tf.saved_model.load(SAVED_MODEL_DIR)
-detect_fn = model.signatures['serving_default']
-category_index = label_map_util.create_category_index_from_labelmap(LABELS_DIR, use_display_name=True)

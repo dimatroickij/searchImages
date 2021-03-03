@@ -2,8 +2,13 @@ import colorsys
 import json
 import math
 import random
+import numpy as np
+import tensorflow as tf
+import skimage.draw as draw
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont
+from object_detection.utils import visualization_utils as viz_utils
+from search import detect_fn, category_index
 import warnings
 
 from plotly.subplots import make_subplots
@@ -30,12 +35,13 @@ def load_hist_elements_from_images(files):
         i += 1
     return colors
 
+
 def load_hist_elements_from_json(file):
     with open(file) as json_file:
         return json.load(json_file)["elements"]
 
-def convert2hist(image, converter, mode="json"):
 
+def convert2hist(image, converter, mode="json"):
     if mode == "json":
         return _convert2hist_from_json(image, converter)
     elif mode == "image":
@@ -50,7 +56,7 @@ def rgb2hsl(r, g, b):
 
 
 def hsl2rgb(h, s, b):
-    r, g, b = colorsys.hls_to_rgb(h/240, b/240, s/240)
+    r, g, b = colorsys.hls_to_rgb(h / 240, b / 240, s / 240)
     return round(255 * r), round(255 * g), round(255 * b)
 
 
@@ -60,7 +66,7 @@ def _convert2hist_from_image(image, pixel_converter):
     for i in range(image.width):
         for j in range(image.height):
             data.append(pixel_converter[pixels[i, j]])
-    return Histogram(data, normalized=True, size=image.width*image.height)
+    return Histogram(data, normalized=True, size=image.width * image.height)
 
 
 def get_rgb_colors(color_elements):
@@ -68,16 +74,16 @@ def get_rgb_colors(color_elements):
         if h[0] > h[1]:
             return 0
         return h[0] + (h[1] - h[0]) / 2
+
     converter = dict()
     for el in color_elements:
         converter[el["id"]] = hsl2rgb(get_h_avg(el["h"]),
-                                      el["s"][0] + (el["s"][1] - el["s"][0])/2,
-                                      el["b"][0] + (el["b"][1] - el["b"][0])/2)
+                                      el["s"][0] + (el["s"][1] - el["s"][0]) / 2,
+                                      el["b"][0] + (el["b"][1] - el["b"][0]) / 2)
     return converter
 
 
 def _convert2hist_from_json(image, color_elements, with_other=False):
-
     def convert2element(h, s, l):
         for el in color_elements:
             h_cond = el["h"][0] <= h <= el["h"][1] if el["h"][0] <= el["h"][1] \
@@ -135,9 +141,8 @@ def convert2hist_1d(image, color_elements, grid_1d):
 
 
 def generate_image(U, color_converter, delta=5, add_normal_color=None, seed=None):
-
     random.seed(seed)
-    color_sample = list(random.choice(U) for _ in range(delta*delta))
+    color_sample = list(random.choice(U) for _ in range(delta * delta))
     color_elements = [color_converter[el] for el in color_sample]
 
     img = Image.new("RGB", (100, 100), "black")
@@ -148,7 +153,7 @@ def generate_image(U, color_converter, delta=5, add_normal_color=None, seed=None
     for i in range(delta):
         for j in range(delta):
             draw.rectangle(((i * step, j * step), ((i + 1) * step, (j + 1) * step)),
-                           fill="rgb({},{},{})".format(*color_elements[delta*i + j]))
+                           fill="rgb({},{},{})".format(*color_elements[delta * i + j]))
 
     if not add_normal_color:
         return img
@@ -156,10 +161,9 @@ def generate_image(U, color_converter, delta=5, add_normal_color=None, seed=None
     cx = random.randint(0, delta)
     cy = random.randint(0, delta)
 
-    for _ in range(delta*delta):
-
-        x = round(random.normalvariate(mu=cx, sigma=delta/5))
-        y = round(random.normalvariate(mu=cy, sigma=delta/5))
+    for _ in range(delta * delta):
+        x = round(random.normalvariate(mu=cx, sigma=delta / 5))
+        y = round(random.normalvariate(mu=cy, sigma=delta / 5))
 
         # if x >= delta: x = delta - 1
         # if y >= delta: y = delta - 1
@@ -192,8 +196,8 @@ def generate_positional_grid_1d(num_x, num_y):
     for i in range(num_y):
         for j in range(num_x):
             element = dict()
-            element["id"] = "e{}".format(i*num_x + j + 1)
-            element["pos"] = (j*1/num_x, i*1/num_y, 1/num_x, 1/num_y)
+            element["id"] = "e{}".format(i * num_x + j + 1)
+            element["pos"] = (j * 1 / num_x, i * 1 / num_y, 1 / num_x, 1 / num_y)
             elements.append(element)
     return elements
 
@@ -315,6 +319,7 @@ def show_rank_images(images, title):
 
     return fig
 
+
 class E:
 
     def __init__(self, *expression):
@@ -401,3 +406,105 @@ def convert_hist_to_all_values(U, H, to_sort=False):
         hist_val_full.sort(reverse=False)
 
     return hist_val_full
+
+
+def segmentObjectDetections(image):
+    image_np = np.array(image)
+
+    width, height = image.size
+
+    input_tensor = tf.convert_to_tensor(image_np)
+    input_tensor = input_tensor[tf.newaxis, ...]
+
+    detections = detect_fn(input_tensor)
+
+    num_detections = int(detections.pop('num_detections'))
+    detections = {key: value[0, :num_detections].numpy()
+                  for key, value in detections.items()}
+    detections['num_detections'] = num_detections
+
+    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+
+    image_np_with_detections = image_np.copy()
+
+    viz_utils.visualize_boxes_and_labels_on_image_array(
+        image_np_with_detections,
+        detections['detection_boxes'],
+        detections['detection_classes'],
+        detections['detection_scores'],
+        category_index,
+        use_normalized_coordinates=True,
+        max_boxes_to_draw=200,
+        min_score_thresh=.30,
+        agnostic_mode=False)
+
+    dataImage = {'segments': [], 'width': width, 'height': height}
+    for i in range(0, detections['num_detections']):
+        dataImage['segments'].append({'scores': float(detections['detection_scores'][i]),
+                                      'boxes': list(
+                                          map(lambda x: float(x), detections['detection_boxes'][i].flatten().tolist())),
+                                      'classes': list(map(lambda x: str(x), detections['detection_classes']))[i],
+                                      })
+    return dataImage
+
+
+def generate_positional_grid_1d(num_x, num_y):
+    elements = list()
+    for i in range(num_y):
+        for j in range(num_x):
+            element = dict()
+            element["id"] = "e{}".format(i * num_x + j + 1)
+            element["pos"] = (j * 1 / num_x, i * 1 / num_y, 1 / num_x, 1 / num_y)
+            elements.append(element)
+    return elements
+
+
+def get_positional_grid_1d(width, height, elements):
+    elements_abs = list()
+    for el in elements:
+        x_start = el["pos"][0] * width
+        y_start = el["pos"][1] * height
+        x_end = x_start + el["pos"][2] * width
+        y_end = y_start + el["pos"][3] * height
+        elements_abs.append({"id": el["id"], "pos": (x_start, y_start, x_end, y_end)})
+    return elements_abs
+
+
+def create_position_mask(width, height, position_elements):
+    pos_mask = np.zeros((height, width), dtype=np.object)  # dtype=np.int)
+    for pos in position_elements:
+        start = [int(pos["pos"][1]), int(pos["pos"][0])]
+        end = [int(pos["pos"][3]), int(pos["pos"][2])]
+        r, c = draw.rectangle(start, end=end, shape=pos_mask.shape)
+        r.dtype = c.dtype = np.int
+        pos_mask[r, c] = pos["id"]  # int(pos["id"].strip("e"))
+    return pos_mask
+
+
+def create_object_mask(width, height, img_anns):
+    obj_mask = np.full((height, width), fill_value="null", dtype=np.object)  # fill_value=-1, dtype=np.int)
+    for i in range(len(img_anns)):
+        seg = img_anns[i]["boxes"]
+        seg_ = [seg[0] * height, seg[1] * width,
+                seg[0] * height, seg[3] * width,
+                seg[2] * height, seg[3] * width,
+                seg[2] * height, seg[1] * width, ]
+
+        poly_ = np.array(seg_).reshape((int(len(seg_) / 2), 2))
+
+        c, r = draw.polygon(poly_[:, 1], poly_[:, 0])
+        obj_mask[r, c] = str(img_anns[i]["classes"])
+    return obj_mask
+
+
+def create_histogram(width, height, pos_mask, obj_mask):
+    hist = Histogram1D(data=None)
+    for x in range(width):
+        for y in range(height):
+            if obj_mask[y, x] != "null":  # if obj_mask[y, x] > 0:
+                el_id = (pos_mask[y, x], obj_mask[y, x])
+                if el_id not in hist:
+                    hist[el_id] = HElement(el_id, 0)
+                hist[el_id].value += 1
+    hist.normalize(width * height)
+    return hist
