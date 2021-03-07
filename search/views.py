@@ -7,7 +7,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
-from searchImages.settings import LABELS_DIR
 from sorl.thumbnail import get_thumbnail
 
 from search import utils, category_index
@@ -19,6 +18,30 @@ from search.utils import segmentObjectDetections, generate_positional_grid_1d, g
 
 def remap_keys(mapping):
     return [{str(k): v} for k, v in mapping.items()]
+
+
+# Преобразование кода объекта в его название
+def editLabels(label):
+    pos = label.split(',')[0].replace("'", '').replace('(', '')
+    obj = category_index[int(label.split(',')[1].replace(')', '').replace("'", ''))]['name']
+    return f"{pos}, {obj}"
+
+# Подготовка JSON файлов для отправки в ChartJS
+def formationHistogram(histogram):
+    hist = json.loads(histogram)
+    labels = list(map(lambda x: editLabels(list(x.keys())[0]), hist))
+    data = list(map(lambda x: list(x.values())[0], hist))
+    return {'type': 'bar',
+            'data': {
+                'labels': labels,
+                'datasets': [{
+                    'label': 'Значение гистограммы',
+                    'data': data,
+                    'backgroundColor': ['rgba(153, 102, 255, 0.2)'] * len(data),
+                    'borderColor': ['rgba(153, 102, 255, 1)'] * len(data),
+                    'borderWidth': 1
+                }]},
+            'options': {'scales': {'yAxes': [{'ticks': {'beginAtZero': True}}]}}}
 
 
 grid_1d = utils.generate_positional_grid_1d(5, 5)
@@ -40,22 +63,6 @@ def all(request):
 
 @login_required
 def search(request):
-    def getGraph(pk):
-        hist = json.loads(Image.objects.get(pk=pk).histogram)
-        labels = list(map(lambda x: list(x.keys())[0], hist))
-        data = list(map(lambda x: list(x.values())[0], hist))
-        return json.dumps({'type': 'bar',
-                           'data': {
-                               'labels': labels,
-                               'datasets': [{
-                                   'label': 'Значение гистограммы',
-                                   'data': data,
-                                   'backgroundColor': ['rgba(153, 102, 255, 0.2)'] * len(data),
-                                   'borderColor': ['rgba(153, 102, 255, 1)'] * len(data),
-                                   'borderWidth': 1
-                               }]},
-                           'options': {'scales': {'yAxes': [{'ticks': {'beginAtZero': True}}]}}})
-
     try:
         query = request.GET['query']
     except:
@@ -72,7 +79,9 @@ def search(request):
         response = {k: v for k, v in sortedTuples}
 
         images = list(map(lambda x: {'pk': x[0], 'result': round(x[1], 2), 'image': Image.objects.get(pk=x[0]).image,
-                                     'title': Image.objects.get(pk=x[0]).title, 'graph': getGraph(x[0])},
+
+                                     'title': Image.objects.get(pk=x[0]).title,
+                                     'graph': json.dumps(formationHistogram(Image.objects.get(pk=x[0]).histogram))},
                           response.items()))
         paginator = Paginator(images, 3)
         pageNumber = request.GET.get('page')
@@ -110,8 +119,7 @@ def upload(request):
                 img.save()
                 return redirect('search:all')
     except:
-        messages.add_message(request, messages.WARNING,
-                             'Ошибка при добавлении изображения')
+        messages.add_message(request, messages.WARNING, 'Ошибка при добавлении изображения')
         return redirect('search:all')
     return HttpResponse(status=400)
 
@@ -136,26 +144,6 @@ def detail(request, pk):
     if Image.objects.filter(pk=pk).exists():
         img = Image.objects.get(pk=pk)
         im = get_thumbnail(img.image, '300x300', crop='center', quality=99)
-        hist = json.loads(img.histogram)
-
-        def editLabels(label):
-            pos = label.split(',')[0].replace("'", '').replace('(', '')
-            obj = category_index[int(label.split(',')[1].replace(')', '').replace("'", ''))]['name']
-            return f"{pos}, {obj}"
-
-        labels = list(map(lambda x: editLabels(list(x.keys())[0]), hist))
-        data = list(map(lambda x: list(x.values())[0], hist))
-        response = {'type': 'bar',
-                    'data': {
-                        'labels': labels,
-                        'datasets': [{
-                            'label': 'Значение гистограммы',
-                            'data': data,
-                            'backgroundColor': ['rgba(153, 102, 255, 0.2)'] * len(data),
-                            'borderColor': ['rgba(153, 102, 255, 1)'] * len(data),
-                            'borderWidth': 1
-                        }]},
-                    'options': {'scales': {'yAxes': [{'ticks': {'beginAtZero': True}}]}}}
-        return JsonResponse({'img': {'url': im.url, 'width': im.width, 'height': im.height}, 'graph': response},
-                            safe=False)
+        return JsonResponse({'img': {'url': im.url, 'width': im.width, 'height': im.height},
+                             'graph': formationHistogram(img.histogram)}, safe=False)
     return HttpResponse(status=204)

@@ -493,7 +493,10 @@ def create_object_mask(width, height, img_anns):
         poly_ = np.array(seg_).reshape((int(len(seg_) / 2), 2))
 
         c, r = draw.polygon(poly_[:, 1], poly_[:, 0])
-        obj_mask[r, c] = str(img_anns[i]["classes"])
+        try:
+            obj_mask[r, c] = str(img_anns[i]["classes"])
+        except:
+            pass
     return obj_mask
 
 

@@ -9,9 +9,11 @@
                 var pk = button.data('store-id')
                 var modal = $(this)
                 modal.find('#ModalLabel').text(recipient)
-                $('#rescanButton').attr('href', 'rescan/' + pk)
                 $('#deleteButton').attr('href', 'delete/' + pk)
-                var ctx = document.getElementById('ChartHistogram').getContext('2d');
+                $('#ChartHistogram').remove()
+                $('#graphHistogram').append('<canvas id="ChartHistogram"><canvas>');
+                canvas = document.querySelector('#ChartHistogram');
+                ctx = canvas.getContext('2d');
                 $.ajax("/detail/" + pk, {
                     statusCode: {
                         200: function (data) {
@@ -135,13 +137,12 @@
                         <div class="col">
                             <img id="modalImg" src="" alt="">
                         </div>
-                        <div class="col">
+                        <div class="col" id="graphHistogram">
                             <canvas id="ChartHistogram"></canvas>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <a class="btn btn-success" id="rescanButton">Пересканировать</a>
                     <a class="btn btn-danger" id="deleteButton">Удалить</a>
                 </div>
             </div>
