@@ -6,9 +6,7 @@ import numpy as np
 import tensorflow as tf
 import skimage.draw as draw
 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFont
-from object_detection.utils import visualization_utils as viz_utils
-from search import detect_fn, category_index
+from PIL import Image, ImageDraw, ImageEnhance
 import warnings
 
 from plotly.subplots import make_subplots
@@ -408,46 +406,6 @@ def convert_hist_to_all_values(U, H, to_sort=False):
     return hist_val_full
 
 
-def segmentObjectDetections(image):
-    image_np = np.array(image)
-
-    width, height = image.size
-
-    input_tensor = tf.convert_to_tensor(image_np)
-    input_tensor = input_tensor[tf.newaxis, ...]
-
-    detections = detect_fn(input_tensor)
-
-    num_detections = int(detections.pop('num_detections'))
-    detections = {key: value[0, :num_detections].numpy()
-                  for key, value in detections.items()}
-    detections['num_detections'] = num_detections
-
-    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
-
-    image_np_with_detections = image_np.copy()
-
-    viz_utils.visualize_boxes_and_labels_on_image_array(
-        image_np_with_detections,
-        detections['detection_boxes'],
-        detections['detection_classes'],
-        detections['detection_scores'],
-        category_index,
-        use_normalized_coordinates=True,
-        max_boxes_to_draw=200,
-        min_score_thresh=.30,
-        agnostic_mode=False)
-
-    dataImage = {'segments': [], 'width': width, 'height': height}
-    for i in range(0, detections['num_detections']):
-        dataImage['segments'].append({'scores': float(detections['detection_scores'][i]),
-                                      'boxes': list(
-                                          map(lambda x: float(x), detections['detection_boxes'][i].flatten().tolist())),
-                                      'classes': list(map(lambda x: str(x), detections['detection_classes']))[i],
-                                      })
-    return dataImage
-
-
 def generate_positional_grid_1d(num_x, num_y):
     elements = list()
     for i in range(num_y):
@@ -483,18 +441,18 @@ def create_position_mask(width, height, position_elements):
 
 def create_object_mask(width, height, img_anns):
     obj_mask = np.full((height, width), fill_value="null", dtype=np.object)  # fill_value=-1, dtype=np.int)
-    for i in range(len(img_anns)):
-        seg = img_anns[i]["boxes"]
-        seg_ = [seg[0] * height, seg[1] * width,
-                seg[0] * height, seg[3] * width,
-                seg[2] * height, seg[3] * width,
-                seg[2] * height, seg[1] * width, ]
+    for seg in img_anns:
+        box = seg['boxes']
+        seg_ = [box[0], box[1],
+                box[0], box[3],
+                box[2], box[3],
+                box[2], box[1], ]
 
         poly_ = np.array(seg_).reshape((int(len(seg_) / 2), 2))
 
-        c, r = draw.polygon(poly_[:, 1], poly_[:, 0])
+        r, c = draw.polygon(poly_[:, 1], poly_[:, 0])
         try:
-            obj_mask[r, c] = str(img_anns[i]["classes"])
+            obj_mask[r, c] = str(seg["classes"])
         except:
             pass
     return obj_mask

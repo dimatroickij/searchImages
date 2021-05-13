@@ -77,9 +77,9 @@ WSGI_APPLICATION = 'searchImages.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': os.environ.get("SQL_ENGINE"),
-        'NAME': os.environ.get("SQL_DATABASE"),
-        'USER': os.environ.get("SQL_USER"),
-        'PASSWORD': os.environ.get("SQL_PASSWORD"),
+        'NAME': os.environ.get("POSTGRES_DB"),
+        'USER': os.environ.get("POSTGRES_USER"),
+        'PASSWORD': os.environ.get("POSTGRES_PASSWORD"),
         'HOST': os.environ.get("SQL_HOST"),
         'PORT': os.environ.get("SQL_PORT"),
     }
@@ -144,6 +144,6 @@ SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 HOME_DIR = os.getcwd()
-MODEL_DIR = os.path.join('/ssd_mobilenet_v2_coco_2018_03_29')
-LABELS_DIR = os.path.join('/', 'mscoco_label_map.pbtxt')
-SAVED_MODEL_DIR = os.path.join(MODEL_DIR, "saved_model")
+YOLO_COCO_CLASSES = "./search/yolo3/coco.names"
+YOLO_V3_WEIGHTS = "/yolov3.weights"
+YOLO_IOU_LOSS_THRESH = 0.5

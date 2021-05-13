@@ -10,3 +10,5 @@ Pillow
 plotly
 six
 scikit-image
+tensorflow
+opencv-python

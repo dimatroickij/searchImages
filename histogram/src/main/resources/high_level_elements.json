@@ -62,244 +62,244 @@
   },
   "1": {
     "person": [
-      "1"
+      "0"
     ],
     "bicycle": [
-      "2"
+      "1"
     ],
     "car": [
+      "2"
+    ],
+    "motorbike": [
       "3"
     ],
-    "motorcycle": [
+    "aeroplane": [
       "4"
     ],
-    "airplane": [
+    "bus": [
       "5"
     ],
-    "bus": [
+    "train": [
       "6"
     ],
-    "train": [
+    "truck": [
       "7"
     ],
-    "truck": [
+    "boat": [
       "8"
     ],
-    "boat": [
+    "traffic-light": [
       "9"
     ],
-    "traffic light": [
+    "fire-hydrant": [
       "10"
     ],
-    "fire hydrant": [
+    "stop-sign": [
       "11"
     ],
-    "stop sign": [
-      "13"
-    ],
-    "parking meter": [
-      "14"
+    "parking-meter": [
+      "12"
     ],
     "bench": [
-      "15"
+      "13"
     ],
     "bird": [
-      "16"
+      "14"
     ],
     "cat": [
-      "17"
+      "15"
     ],
     "dog": [
-      "18"
+      "16"
     ],
     "horse": [
-      "19"
+      "17"
     ],
     "sheep": [
-      "20"
+      "18"
     ],
     "cow": [
-      "21"
+      "19"
     ],
     "elephant": [
-      "22"
+      "20"
     ],
     "bear": [
-      "23"
+      "21"
     ],
     "zebra": [
-      "24"
+      "22"
     ],
     "giraffe": [
-      "25"
+      "23"
     ],
     "backpack": [
-      "27"
+      "24"
     ],
     "umbrella": [
-      "28"
+      "25"
     ],
     "handbag": [
-      "31"
+      "26"
     ],
     "tie": [
-      "32"
+      "27"
     ],
     "suitcase": [
-      "33"
+      "28"
     ],
     "frisbee": [
-      "34"
+      "29"
     ],
     "skis": [
-      "35"
+      "30"
     ],
     "snowboard": [
-      "36"
+      "31"
     ],
-    "sports ball": [
-      "37"
+    "sports-ball": [
+      "32"
     ],
     "kite": [
-      "38"
+      "33"
     ],
-    "baseball bat": [
-      "39"
+    "baseball-bat": [
+      "34"
     ],
-    "baseball glove": [
-      "40"
+    "baseball-glove": [
+      "35"
     ],
     "skateboard": [
-      "41"
+      "36"
     ],
     "surfboard": [
-      "42"
+      "37"
     ],
-    "tennis racket": [
-      "43"
+    "tennis-racket": [
+      "38"
     ],
     "bottle": [
-      "44"
+      "39"
     ],
-    "wine glass": [
-      "46"
+    "wine-glass": [
+      "40"
     ],
     "cup": [
-      "47"
+      "41"
     ],
     "fork": [
-      "48"
+      "42"
     ],
     "knife": [
-      "49"
+      "43"
     ],
     "spoon": [
-      "50"
+      "44"
     ],
     "bowl": [
-      "51"
+      "45"
     ],
     "banana": [
-      "52"
+      "46"
     ],
     "apple": [
-      "53"
+      "47"
     ],
     "sandwich": [
-      "54"
+      "48"
     ],
     "orange": [
-      "55"
+      "49"
     ],
     "broccoli": [
-      "56"
+      "50"
     ],
     "carrot": [
-      "57"
+      "51"
     ],
-    "hot dog": [
-      "58"
+    "hot-dog": [
+      "52"
     ],
     "pizza": [
-      "59"
+      "53"
     ],
     "donut": [
-      "60"
+      "54"
     ],
     "cake": [
-      "61"
+      "55"
     ],
     "chair": [
-      "62"
+      "56"
     ],
-    "couch": [
-      "63"
+    "sofa": [
+      "57"
     ],
-    "potted plant": [
-      "64"
+    "pottedplant": [
+      "58"
     ],
     "bed": [
-      "65"
+      "59"
     ],
-    "dining table": [
-      "67"
+    "diningtable": [
+      "60"
     ],
     "toilet": [
-      "70"
+      "61"
     ],
-    "tv": [
-      "72"
+    "tvmonitor": [
+      "62"
     ],
     "laptop": [
-      "73"
+      "63"
     ],
     "mouse": [
-      "74"
+      "64"
     ],
     "remote": [
-      "75"
+      "65"
     ],
     "keyboard": [
-      "76"
+      "66"
     ],
-    "cell phone": [
-      "77"
+    "cell-phone": [
+      "67"
     ],
     "microwave": [
-      "78"
+      "68"
     ],
     "oven": [
-      "79"
+      "69"
     ],
     "toaster": [
-      "80"
+      "70"
     ],
     "sink": [
-      "81"
+      "71"
     ],
     "refrigerator": [
-      "82"
+      "72"
     ],
     "book": [
-      "84"
+      "73"
     ],
     "clock": [
-      "85"
+      "74"
     ],
     "vase": [
-      "86"
+      "75"
     ],
     "scissors": [
-      "87"
+      "76"
     ],
-    "teddy bear": [
-      "88"
+    "teddy-bear": [
+      "77"
     ],
-    "hair drier": [
-      "89"
+    "hair-drier": [
+      "78"
     ],
     "toothbrush": [
-      "90"
+      "79"
     ]
   }
 }
