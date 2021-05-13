@@ -8,4 +8,5 @@ ssh -o StrictHostKeyChecking=no dimatroickij@$IP_ADDRESS << 'ENDSSH'
   docker pull $IMAGE:histogram
   docker pull $IMAGE:nginx
   docker-compose -f docker-compose.prod.yml up -d
+  docker system prune
 ENDSSH
