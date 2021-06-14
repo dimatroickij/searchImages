@@ -1,0 +1,14 @@
+{'segments': [
+  {'scores': 0.9342873, 'boxes': array([0.0848244 , 0.4380611 , 0.17121424, 0.49894646], dtype=float32), 'classes': '38'},
+  {'scores': 0.8684213, 'boxes': array([0.56564885, 0.39131483, 0.593569  , 0.40982482], dtype=float32), 'classes': '1'},
+  {'scores': 0.8313618, 'boxes': array([0.3835326 , 0.35030907, 0.4055235 , 0.36863184], dtype=float32), 'classes': '38'},
+  {'scores': 0.7937881, 'boxes': array([0.5720238 , 0.05761471, 0.62415105, 0.07780794], dtype=float32), 'classes': '1'},
+  {'scores': 0.782086, 'boxes': array([0.7710784 , 0.16185525, 0.9451315 , 0.20130888], dtype=float32), 'classes': '1'},
+  {'scores': 0.7575314, 'boxes': array([0.56991774, 0.03067032, 0.62227803, 0.0464198 ], dtype=float32), 'classes': '1'},
+  {'scores': 0.7515012, 'boxes': array([0.27517983, 0.20607828, 0.30678192, 0.22383155], dtype=float32), 'classes': '38'},
+  {'scores': 0.6716362, 'boxes': array([0.68067646, 0.08437313, 0.8205919 , 0.1180678 ], dtype=float32), 'classes': '1'},
+  {'scores': 0.38989612, 'boxes': array([0.54608953, 0.25928304, 0.5592742 , 0.26780996], dtype=float32), 'classes': '1'},
+  {'scores': 0.3475449, 'boxes': array([0.39218056, 0.42660832, 0.40826952, 0.4437657 ], dtype=float32), 'classes': '38'},
+  {'scores': 0.33116323, 'boxes': array([0.44672766, 0.79858243, 0.47322235, 0.8240831 ], dtype=float32), 'classes': '38'},
+  {'scores': 0.30388647, 'boxes': array([0.38648725, 0.42394257, 0.40607804, 0.43983048], dtype=float32), 'classes': '38'}],
+  'width': 1352, 'height': 900}

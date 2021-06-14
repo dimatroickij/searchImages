@@ -53,8 +53,7 @@
                 <div class="col mb-4">
                     <div class="card">
                         {% thumbnail img.image "150x150" crop="center" as im %}
-                            <img class="card-img-top" src="{{ STATIC_URL }}{{ im.url }}" width="{{ im.width }}"
-                                 height="{{ im.height }}" alt="">
+                            <img class="card-img-top" src="{{ STATIC_URL }}{{ im.url }}" alt="" style="object-fit: cover">
                         {% endthumbnail %}
                         <div class="card-body">
                             <h5 class="card-title">

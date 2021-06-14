@@ -144,6 +144,6 @@ SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 HOME_DIR = os.getcwd()
-YOLO_COCO_CLASSES = "./search/yolo3/coco.names"
+YOLO_COCO_CLASSES = "./search/yolo3/coco.csv"
 YOLO_V3_WEIGHTS = "/yolov3.weights"
 YOLO_IOU_LOSS_THRESH = 0.5
